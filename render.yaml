@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: a-queda-do-rei
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TIKTOK_USERNAME
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: SIGN_API_KEY
+        sync: false
+      - key: TWINS_MODE
+        value: "false"
+      - key: TTS_ENABLED
+        value: "true"
+      - key: ELECTION_ENABLED
+        value: "true"
