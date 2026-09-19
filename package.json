@@ -1,0 +1,20 @@
+{
+  "name": "a-queda-do-rei",
+  "version": "3.1.0",
+  "description": "Jogo interativo viral para TikTok Live",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "ioredis": "^5.4.1",
+    "node-gtts": "^2.0.2",
+    "socket.io": "^4.7.5",
+    "tiktok-live-connector": "^1.1.9"
+  }
+}
