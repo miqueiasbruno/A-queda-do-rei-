@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>👑 A Queda do Rei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=MedievalSharp&display=swap" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'MedievalSharp',serif;color:#f5e6c8}
+
+#bg-video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:brightness(.55) saturate(1.1) contrast(1.05)}
+#vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.85) 100%)}
+#furia-overlay{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .6s;
+  background:radial-gradient(ellipse at center,transparent 40%,rgba(180,0,0,.55) 100%),linear-gradient(180deg,rgba(120,0,0,.25),rgba(60,0,0,.45));mix-blend-mode:multiply}
+body.furia #furia-overlay{opacity:1}
+body.furia #bg-video{filter:brightness(.35) saturate(1.6) hue-rotate(-15deg) contrast(1.2)}
+
+#boss-hud-container{position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(1500px,96vw);display:grid;gap:14px;z-index:20;grid-template-columns:1fr}
+#boss-hud-container.twins{grid-template-columns:1fr 1fr}
+.boss-hud{background:linear-gradient(180deg,rgba(20,10,5,.92),rgba(40,15,8,.9));border:3px solid #b8873f;border-radius:14px;padding:12px 18px 14px;box-shadow:0 0 30px rgba(184,135,63,.35),inset 0 0 25px rgba(0,0,0,.7);backdrop-filter:blur(4px);transition:border-color .4s,box-shadow .4s}
+.boss-hud.furia{animation:hud-shake .35s infinite;border-color:#ff2020;box-shadow:0 0 45px rgba(255,20,20,.85),inset 0 0 30px rgba(255,0,0,.35)}
+@keyframes hud-shake{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-2px)}}
+.boss-hud .boss-name{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(14px,1.6vw,22px);letter-spacing:2px;text-align:center;color:#ffe08a;text-shadow:0 0 12px #ff8a00,0 2px 0 #6b3d0b,0 4px 8px rgba(0,0,0,.8);margin-bottom:6px}
+.boss-hud .kingdom-label{font-size:.75em;color:#e0b06a;opacity:.9;font-weight:700}
+.boss-hud .chosen-badge{display:none;margin-left:8px;padding:2px 8px;border-radius:20px;background:linear-gradient(90deg,#ffb347,#ff5a00);color:#1a0800;font-size:.65em;font-weight:900;letter-spacing:1px;box-shadow:0 0 12px #ff8a00;animation:pulse-chosen 1.4s ease-in-out infinite}
+@keyframes pulse-chosen{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.boss-hud .hp-bar-wrap{position:relative;width:100%;height:28px;background:linear-gradient(180deg,#1a0505,#2a0808);border:2px solid #6b3d0b;border-radius:8px;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.9)}
+.boss-hud .hp-bar{height:100%;width:100%;background:linear-gradient(180deg,#ff3a3a 0%,#c10000 45%,#6b0000 100%);box-shadow:0 0 18px rgba(255,40,40,.7),inset 0 -8px 12px rgba(0,0,0,.5);transition:width .35s cubic-bezier(.2,.9,.3,1.4);position:relative}
+.boss-hud .hp-bar::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.35) 0%,transparent 40%,transparent 65%,rgba(0,0,0,.35) 100%)}
+.boss-hud.furia .hp-bar{background:linear-gradient(180deg,#ff2a2a,#8b0000);box-shadow:0 0 25px #ff2020,inset 0 0 18px rgba(0,0,0,.5)}
+.boss-hud .hp-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;letter-spacing:1px;color:#fff;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.9);font-family:'Cinzel',serif}
+
+#ranking{position:fixed;top:150px;right:18px;width:290px;background:linear-gradient(180deg,rgba(30,18,8,.94),rgba(15,8,3,.96));border:2px solid #b8873f;border-radius:12px;padding:14px 14px 10px;box-shadow:0 8px 30px rgba(0,0,0,.7),inset 0 0 20px rgba(0,0,0,.6);z-index:15;backdrop-filter:blur(6px)}
+#ranking h3{font-family:'Cinzel',serif;font-weight:900;font-size:17px;color:#ffe08a;text-align:center;letter-spacing:2px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed rgba(184,135,63,.5);text-shadow:0 0 10px #ff8a00}
+#ranking-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+#ranking-list li{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.35);font-size:13px;border-left:3px solid transparent;transition:transform .25s,border-color .25s}
+#ranking-list li.rank-1{border-left-color:#ffd24a;box-shadow:inset 0 0 12px rgba(255,210,74,.15)}
+#ranking-list li.rank-2{border-left-color:#c7c7c7}
+#ranking-list li.rank-3{border-left-color:#cd7f32}
+#ranking-list li .badge{font-size:18px;text-align:center}
+#ranking-list li .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#f5e6c8}
+#ranking-list li .dmg{font-family:'Cinzel',serif;font-weight:900;font-size:12px;color:#ff8a00;text-shadow:0 0 6px rgba(255,138,0,.6)}
+
+#damage-layer{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+.dmg-num{position:absolute;font-family:'Cinzel',serif;font-weight:900;white-space:nowrap;transform:translate(-50%,-50%);animation:dmg-float 1.4s cubic-bezier(.15,.7,.4,1) forwards;text-shadow:0 2px 0 #000,0 0 8px rgba(0,0,0,.9);will-change:transform,opacity}
+@keyframes dmg-float{0%{opacity:0;transform:translate(-50%,-30%) scale(.4)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}30%{transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-180%) scale(.9)}}
+.dmg-like{color:#e8f0ff;font-size:22px;text-shadow:0 0 6px #4aa8ff,0 2px 0 #000}
+.dmg-chat{color:#ffd77a;font-size:30px;text-shadow:0 0 8px #ff9a00,0 2px 0 #000}
+.dmg-chat-attack{color:#ffb347;font-size:38px;text-shadow:0 0 12px #ff5a00,0 2px 0 #000}
+.dmg-gift{color:#ff6be1;font-size:56px;text-shadow:0 0 16px #b400ff,0 3px 0 #000}
+.dmg-crit{color:#fff!important;font-size:76px!important;text-shadow:0 0 20px #ff0044,0 0 40px #ff0044,0 3px 0 #000!important;animation:dmg-crit 1.6s cubic-bezier(.15,.7,.4,1) forwards!important}
+.dmg-crit::after{content:" CRÍTICO!";font-size:.55em;letter-spacing:2px;color:#ffd24a;text-shadow:0 0 12px #ff5a00,0 2px 0 #000}
+@keyframes dmg-crit{0%{opacity:0;transform:translate(-50%,-30%) scale(.2) rotate(-10deg)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.4) rotate(3deg)}35%{transform:translate(-50%,-55%) scale(1.1) rotate(-2deg)}100%{opacity:0;transform:translate(-50%,-200%) scale(1)}}
+.dmg-num.chosen{filter:drop-shadow(0 0 10px #ffd24a);font-size:1.2em}
+
+body.shake-sm{animation:shake-sm .25s}
+body.shake-lg{animation:shake-lg .45s}
+@keyframes shake-sm{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,-3px)}}
+@keyframes shake-lg{0%,100%{transform:translate(0,0)}15%{transform:translate(-12px,8px) rotate(-.5deg)}30%{transform:translate(12px,-8px) rotate(.5deg)}45%{transform:translate(-9px,-6px) rotate(-.3deg)}60%{transform:translate(8px,7px) rotate(.3deg)}80%{transform:translate(-4px,-3px)}}
+
+#video-overlay{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(6px)}
+#video-overlay.active{opacity:1}
+#event-video{max-width:94vw;max-height:88vh;border-radius:12px;box-shadow:0 0 60px rgba(255,140,0,.6),0 0 120px rgba(255,0,0,.3);transform:scale(.85);transition:transform .35s cubic-bezier(.2,.9,.3,1.4)}
+#video-overlay.active #event-video{transform:scale(1)}
+
+#victory-overlay{position:fixed;inset:0;z-index:48;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(255,140,0,.15),rgba(0,0,0,.95) 70%);opacity:0;pointer-events:none;transition:opacity .6s}
+#victory-overlay.active{opacity:1;pointer-events:auto}
+#victory-content{text-align:center;padding:40px 60px 140px;transform:scale(.5);opacity:0;transition:transform .8s cubic-bezier(.15,.9,.3,1.3),opacity .6s}
+#victory-overlay.active #victory-content{transform:scale(1);opacity:1}
+#victory-overlay h1{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(48px,8vw,120px);letter-spacing:6px;color:#ffd24a;text-shadow:0 0 20px #ff5a00,0 0 60px #ff0000,0 6px 0 #4a1a00,0 8px 24px rgba(0,0,0,.9);animation:victory-pulse 1.2s ease-in-out infinite}
+@keyframes victory-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.final-blow-label{margin-top:28px;font-size:clamp(16px,2vw,24px);color:#e0b06a;letter-spacing:6px;text-transform:uppercase}
+#final-blow-user{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(36px,5vw,72px);color:#fff;margin-top:8px;text-shadow:0 0 22px #ffd24a,0 0 60px #ff5a00,0 4px 0 #6b3d0b;animation:blow-glow 1.4s ease-in-out infinite alternate}
+@keyframes blow-glow{from{text-shadow:0 0 22px #ffd24a,0 0 60px #ff5a00,0 4px 0 #6b3d0b}to{text-shadow:0 0 40px #fff,0 0 100px #ff5a00,0 4px 0 #6b3d0b}}
+#next-kingdom{margin-top:36px;font-size:20px;color:#b8873f;letter-spacing:3px}
+
+#election-overlay{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:55;
+  width:min(780px,94vw);padding:14px 22px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(40,20,5,.96),rgba(20,8,2,.98));
+  border:2px solid #ffb347;box-shadow:0 0 40px rgba(255,179,71,.6),inset 0 0 22px rgba(0,0,0,.7);
+  opacity:0;pointer-events:none;transition:opacity .4s,transform .4s;backdrop-filter:blur(8px)}
+#election-overlay.active{opacity:1;pointer-events:auto;animation:elec-in .5s cubic-bezier(.15,.9,.3,1.3)}
+@keyframes elec-in{0%{transform:translateX(-50%) translateY(40px) scale(.9)}100%{transform:translateX(-50%) translateY(0) scale(1)}}
+#election-overlay h2{font-family:'Cinzel',serif;font-weight:900;text-align:center;font-size:clamp(18px,2.2vw,26px);letter-spacing:3px;color:#ffd24a;text-shadow:0 0 12px #ff5a00;margin-bottom:4px}
+#election-overlay .sub{text-align:center;font-size:14px;color:#e0b06a;margin-bottom:10px;letter-spacing:1px}
+#election-overlay kbd{background:#2a1408;border:1px solid #b8873f;border-radius:6px;padding:2px 8px;color:#ffd24a;font-family:'Cinzel',serif;font-weight:700;box-shadow:0 0 8px rgba(255,179,71,.4)}
+#election-votes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:32px;margin-top:8px}
+.elec-chip{padding:4px 14px;border-radius:20px;background:linear-gradient(180deg,#ffb347,#c86000);color:#1a0800;font-weight:900;font-size:14px;letter-spacing:.5px;box-shadow:0 3px 10px rgba(0,0,0,.5),0 0 12px rgba(255,179,71,.4);animation:chip-pop .35s cubic-bezier(.15,.9,.3,1.5)}
+@keyframes chip-pop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+#election-timer{position:absolute;top:8px;right:14px;font-family:'Cinzel',serif;font-weight:900;font-size:22px;color:#ffd24a;text-shadow:0 0 10px #ff5a00}
+
+@media (max-width:760px){
+  #ranking{width:220px;top:auto;bottom:150px;right:10px;padding:10px}
+  #ranking h3{font-size:14px}
+  #ranking-list li{font-size:11px;padding:5px 6px}
+  .dmg-crit{font-size:56px!important}
+  .dmg-gift{font-size:42px}
+  #election-overlay{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+  <video id="bg-video" src="/assets/videos/castelo_fundo.mp4" autoplay muted loop playsinline></video>
+  <div id="vignette"></div>
+  <div id="furia-overlay"></div>
+
+  <header id="boss-hud-container"></header>
+
+  <aside id="ranking">
+    <h3>⚔️ Távola Redonda</h3>
+    <ul id="ranking-list"></ul>
+  </aside>
+
+  <div id="damage-layer"></div>
+
+  <div id="video-overlay"><video id="event-video" playsinline></video></div>
+
+  <div id="victory-overlay">
+    <div id="victory-content">
+      <h1>💀 REI DERROTADO 💀</h1>
+      <p class="final-blow-label">⚔️ Golpe Final ⚔️</p>
+      <p id="final-blow-user">—</p>
+      <p id="next-kingdom">Próximo reinado em 8s…</p>
+    </div>
+  </div>
+
+  <div id="election-overlay">
+    <div id="election-timer">8s</div>
+    <h2>🗳️ ELEIÇÃO DO REI</h2>
+    <p class="sub">Digite <kbd>!voto NOME</kbd> no chat — o escolhido causa <b style="color:#ffd24a">DANO EM DOBRO</b> no próximo reinado!</p>
+    <div id="election-votes"></div>
+  </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const $ = (id) => document.getElementById(id);
+
+const elHudContainer = $('boss-hud-container');
+const elRanking      = $('ranking-list');
+const elDmgLayer     = $('damage-layer');
+const elVideoOv      = $('video-overlay');
+const elEventVideo   = $('event-video');
+const elVictory      = $('victory-overlay');
+const elFinalBlow    = $('final-blow-user');
+const elNextK        = $('next-kingdom');
+const elBgVideo      = $('bg-video');
+const elElecOv       = $('election-overlay');
+const elElecVotes    = $('election-votes');
+const elElecTimer    = $('election-timer');
+
+const fmt = (n) => Math.floor(n).toLocaleString('pt-BR');
+const escapeHtml = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+
+function createAudioPool(src, size = 6, volume = 1) {
+  const pool = [];
+  for (let i = 0; i < size; i++) {
+    const a = new Audio(src); a.preload = 'auto'; a.volume = volume;
+    pool.push({ el: a, busy: false });
+  }
+  let cursor = 0;
+  return function play(v = volume) {
+    for (let i = 0; i < pool.length; i++) {
+      const slot = pool[(cursor + i) % pool.length];
+      if (!slot.busy) {
+        slot.busy = true;
+        slot.el.currentTime = 0; slot.el.volume = v;
+        slot.el.play().catch(() => {});
+        slot.el.onended = () => { slot.busy = false; };
+        cursor = (cursor + i + 1) % pool.length;
+        return;
+      }
+    }
+    const slot = pool[cursor];
+    slot.el.currentTime = 0; slot.el.volume = v; slot.el.play().catch(()=>{});
+    cursor = (cursor + 1) % pool.length;
+  };
+}
+const SOUNDS = {
+  like:    createAudioPool('/assets/audio/flecha.mp3', 8, 0.35),
+  chat:    createAudioPool('/assets/audio/espada.mp3', 6, 0.5),
+  crit:    createAudioPool('/assets/audio/critico.mp3', 4, 0.9),
+  magic:   createAudioPool('/assets/audio/magia.mp3', 3, 0.85),
+  victory: createAudioPool('/assets/audio/vitoria.mp3', 1, 1),
+};
+
+function unlockAudio() {
+  const silent = new Audio();
+  silent.volume = 0;
+  silent.play().catch(() => {});
+  Object.values(SOUNDS).forEach(pool => { try { pool(0); } catch {} });
+  document.removeEventListener('touchstart', unlockAudio);
+  document.removeEventListener('click', unlockAudio);
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
+
+const hudRefs = new Map();
+function buildHud(kingdoms) {
+  elHudContainer.classList.toggle('twins', kingdoms.length > 1);
+  elHudContainer.innerHTML = '';
+  hudRefs.clear();
+  kingdoms.forEach(k => {
+    const div = document.createElement('div');
+    div.className = 'boss-hud';
+    div.dataset.id = k.id;
+    const nameTag = kingdoms.length > 1 ? ` <span style="color:#ffb347">[Reino ${k.id}]</span>` : '';
+    div.innerHTML = `
+      <div class="boss-name">
+        👑 Rei Tirano${nameTag} <span class="kingdom-label"></span>
+        <span class="chosen-badge"></span>
+      </div>
+      <div class="hp-bar-wrap">
+        <div class="hp-bar" style="width:100%"></div>
+        <div class="hp-text"></div>
+      </div>`;
+    elHudContainer.appendChild(div);
+    hudRefs.set(k.id, {
+      root: div,
+      hpBar: div.querySelector('.hp-bar'),
+      hpText: div.querySelector('.hp-text'),
+      label: div.querySelector('.kingdom-label'),
+      chosenBadge: div.querySelector('.chosen-badge'),
+    });
+  });
+}
+
+function renderState(kingdoms) {
+  if (!kingdoms || kingdoms.length !== hudRefs.size) buildHud(kingdoms);
+  let anyFuria = false;
+  kingdoms.forEach(k => {
+    const r = hudRefs.get(k.id); if (!r) return;
+    const pct = Math.max(0, (k.currentHp / k.maxHp) * 100);
+    r.hpBar.style.width = pct + '%';
+    r.hpText.textContent = `${fmt(k.currentHp)} / ${fmt(k.maxHp)}`;
+    r.label.textContent = `(Reinado ${k.kingdom})`;
+    r.root.classList.toggle('furia', !!k.furia);
+    if (k.chosenOne) {
+      r.chosenBadge.style.display = 'inline-block';
+      r.chosenBadge.textContent = `🎯 Alvo: ${k.chosenOne}`;
+    } else r.chosenBadge.style.display = 'none';
+    if (k.furia) anyFuria = true;
+  });
+  document.body.classList.toggle('furia', anyFuria);
+  renderRanking(kingdoms);
+}
+
+const RANK_BADGES = ['👑','⚔️','🛡️','🗡️','🏹'];
+function renderRanking(kingdoms) {
+  const merged = new Map();
+  for (const k of kingdoms) for (const p of k.ranking) {
+    const e = merged.get(p.userId) || { ...p, damage: 0 };
+    e.damage += p.damage; e.username = p.username;
+    merged.set(p.userId, e);
+  }
+  const top = [...merged.values()].sort((a,b)=>b.damage-a.damage).slice(0,5);
+  elRanking.innerHTML = '';
+  top.forEach((p, i) => {
+    const li = document.createElement('li');
+    li.className = `rank-${i+1}`;
+    li.innerHTML = `
+      <span class="badge">${RANK_BADGES[i] || '•'}</span>
+      <span class="name">${escapeHtml(p.username)}</span>
+      <span class="dmg">${fmt(p.damage)}</span>`;
+    elRanking.appendChild(li);
+  });
+}
+
+const MAX_NODES = 70;
+function spawnDamage({ amount, crit, type, combo, kingdomId, chosen }) {
+  if (elDmgLayer.childElementCount > MAX_NODES) elDmgLayer.removeChild(elDmgLayer.firstChild);
+  const node = document.createElement('div');
+  const cls = crit ? 'crit' :
+              type === 'gift' ? 'gift' :
+              type === 'chat-attack' ? 'chat-attack' :
+              type === 'chat' ? 'chat' : 'like';
+  node.className = `dmg-num dmg-${cls}${crit ? ' dmg-crit' : ''}${chosen ? ' chosen' : ''}`;
+  const icon = chosen ? '🎯 ' : type === 'gift' ? '✨ ' : (type?.startsWith('chat')) ? '⚔️ ' : '🏹 ';
+  const comboTag = (!crit && type === 'like' && combo > 1)
+    ? ` <span style="font-size:.6em;color:#8ec5ff">x${combo}</span>` : '';
+  node.innerHTML = `${icon}${fmt(amount)}${comboTag}`;
+
+  const baseX = hudRefs.size > 1
+    ? (kingdomId === 'A' ? 15 + Math.random()*25 : 60 + Math.random()*25)
+    : 20 + Math.random()*60;
+  node.style.left = baseX + '%';
+  node.style.top  = (22 + Math.random()*32) + '%';
+  elDmgLayer.appendChild(node);
+  setTimeout(() => node.remove(), 1700);
+
+  if (crit) {
+    document.body.classList.remove('shake-lg'); void document.body.offsetWidth;
+    document.body.classList.add('shake-lg');
+    setTimeout(() => document.body.classList.remove('shake-lg'), 500);
+  } else if (type === 'gift') {
+    document.body.classList.remove('shake-sm'); void document.body.offsetWidth;
+    document.body.classList.add('shake-sm');
+    setTimeout(() => document.body.classList.remove('shake-sm'), 300);
+  }
+}
+
+const videoQueue = []; let videoPlaying = false;
+function enqueueVideo(src, maxDuration = 5) { videoQueue.push({ src, maxDuration }); processVideoQueue(); }
+function processVideoQueue() {
+  if (videoPlaying || !videoQueue.length) return;
+  const item = videoQueue.shift(); videoPlaying = true;
+  elEventVideo.src = item.src; elEventVideo.currentTime = 0;
+  elVideoOv.classList.add('active'); elEventVideo.play().catch(()=>{});
+  let done = false;
+  const finish = () => {
+    if (done) return; done = true;
+    elVideoOv.classList.remove('active');
+    elEventVideo.pause(); elEventVideo.removeAttribute('src');
+    videoPlaying = false; setTimeout(processVideoQueue, 200);
+  };
+  elEventVideo.addEventListener('ended', finish, { once: true });
+  setTimeout(finish, item.maxDuration * 1000);
+}
+
+const ttsQueue = []; let ttsPlaying = false;
+function playTTS(url) { ttsQueue.push(url); processTTS(); }
+function processTTS() {
+  if (ttsPlaying || !ttsQueue.length) return;
+  ttsPlaying = true;
+  const a = new Audio(ttsQueue.shift());
+  a.volume = 1;
+  a.onended = a.onerror = () => { ttsPlaying = false; setTimeout(processTTS, 120); };
+  a.play().catch(() => { ttsPlaying = false; setTimeout(processTTS, 120); });
+}
+
+function showVictory({ username, kingdomId }) {
+  SOUNDS.victory(1);
+  enqueueVideo('/assets/videos/rei_caindo.mp4', 6);
+  const tag = hudRefs.size > 1 ? ` [Reino ${kingdomId}]` : '';
+  elFinalBlow.textContent = `⭐ ${username}${tag} ⭐`;
+  let rem = 8;
+  elNextK.textContent = `Próximo reinado em ${rem}s…`;
+  const t = setInterval(() => {
+    rem -= 1;
+    if (rem <= 0) { clearInterval(t); elVictory.classList.remove('active'); return; }
+    elNextK.textContent = `Próximo reinado em ${rem}s…`;
+  }, 1000);
+  setTimeout(() => elVictory.classList.add('active'), 400);
+}
+
+let electionTimerInterval = null;
+function startElectionUI({ endsAt }) {
+  elElecOv.classList.add('active');
+  elElecVotes.innerHTML = '';
+  if (electionTimerInterval) clearInterval(electionTimerInterval);
+  const tick = () => {
+    const s = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    elElecTimer.textContent = `${s}s`;
+    if (s <= 0) clearInterval(electionTimerInterval);
+  };
+  tick();
+  electionTimerInterval = setInterval(tick, 250);
+}
+function endElectionUI({ winner, votes }) {
+  if (electionTimerInterval) clearInterval(electionTimerInterval);
+  if (winner) {
+    elElecVotes.innerHTML = `<div class="elec-chip" style="font-size:18px;padding:8px 20px">
+      🎯 ${escapeHtml(winner)} <span style="margin-left:6px;opacity:.75">${votes} votos</span>
+    </div>`;
+    setTimeout(() => elElecOv.classList.remove('active'), 3200);
+  } else {
+    elElecOv.classList.remove('active');
+  }
+}
+function onVote({ target }) {
+  const chip = document.createElement('div');
+  chip.className = 'elec-chip';
+  chip.textContent = target;
+  elElecVotes.appendChild(chip);
+  if (elElecVotes.childElementCount > 6) elElecVotes.removeChild(elElecVotes.firstChild);
+}
+
+socket.on('state', renderState);
+socket.on('furia', ({ kingdomId, furia }) => {
+  const r = hudRefs.get(kingdomId); if (r) r.root.classList.toggle('furia', furia);
+  const anyFuria = [...hudRefs.values()].some(x => x.root.classList.contains('furia'));
+  document.body.classList.toggle('furia', anyFuria);
+});
+socket.on('damage', (data) => {
+  if (data.crit) SOUNDS.crit(0.9);
+  else if (data.type === 'gift') SOUNDS.magic(0.85);
+  else if (data.type === 'chat' || data.type === 'chat-attack') SOUNDS.chat(0.5);
+  else SOUNDS.like(0.35);
+  spawnDamage(data);
+});
+socket.on('gift-event', () => enqueueVideo('/assets/videos/magia.mp4', 4.5));
+socket.on('victory', showVictory);
+socket.on('reset', (kingdoms) => {
+  renderState(kingdoms);
+  elVictory.classList.remove('active');
+  document.body.classList.add('shake-lg');
+  setTimeout(() => document.body.classList.remove('shake-lg'), 500);
+});
+socket.on('combo-reset', () => {});
+socket.on('tts', ({ url }) => playTTS(url));
+socket.on('election-start', startElectionUI);
+socket.on('election-vote', onVote);
+socket.on('election-end', endElectionUI);
+
+document.addEventListener('click', () => elBgVideo.play().catch(()=>{}), { once: true });
+</script>
+</body>
+</html>
